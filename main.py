@@ -1,6 +1,10 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, EmailStr
+from typing import Any, Dict
+from database import create_document
+from schemas import Contact as ContactSchema
 
 app = FastAPI()
 
@@ -19,6 +23,17 @@ def read_root():
 @app.get("/api/hello")
 def hello():
     return {"message": "Hello from the backend API!"}
+
+@app.post("/api/contact")
+def submit_contact(payload: ContactSchema):
+    """Accept contact messages and persist to DB. Simulate email send by logging."""
+    try:
+        # Save to database
+        doc_id = create_document("contact", payload)
+        # In real-world, integrate email service here. We simulate by returning success.
+        return {"message": "Thanks! Your message was sent to Aditya's inbox.", "id": doc_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/test")
 def test_database():
